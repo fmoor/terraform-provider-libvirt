@@ -3,6 +3,7 @@ package libvirt
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -127,6 +128,9 @@ func resourceCloudInitDiskExists(d *schema.ResourceData, meta interface{}) (bool
 	volPoolName := d.Get("pool").(string)
 	volume, err := volumeLookupReallyHard(client, volPoolName, key)
 	if err != nil {
+		if strings.Contains(err.Error(), "Error retrieving pool") {
+			return false, nil
+		}
 		return false, err
 	}
 

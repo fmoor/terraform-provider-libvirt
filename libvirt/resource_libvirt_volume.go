@@ -3,6 +3,7 @@ package libvirt
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	libvirt "github.com/digitalocean/go-libvirt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -291,6 +292,11 @@ func resourceLibvirtVolumeRead(d *schema.ResourceData, meta interface{}) error {
 
 	volume, err := volumeLookupReallyHard(client, d.Get("pool").(string), d.Id())
 	if err != nil {
+		if strings.Contains(err.Error(), "Error retrieving pool") {
+			log.Printf("Volume '%s' may have been deleted outside Terraform", d.Id())
+			d.SetId("")
+			return nil
+		}
 		return err
 	}
 
@@ -361,6 +367,9 @@ func resourceLibvirtVolumeExists(d *schema.ResourceData, meta interface{}) (bool
 	volPoolName := d.Get("pool").(string)
 	volume, err := volumeLookupReallyHard(client, volPoolName, d.Id())
 	if err != nil {
+		if strings.Contains(err.Error(), "Error retrieving pool") {
+			return false, nil
+		}
 		return false, err
 	}
 
