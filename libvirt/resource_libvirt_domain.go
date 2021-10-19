@@ -595,6 +595,14 @@ func resourceLibvirtDomainCreate(d *schema.ResourceData, meta interface{}) error
 
 	err = virConn.DomainCreate(domain)
 	if err != nil {
+		if e := virConn.DomainDestroy(domain); e != nil {
+			log.Printf("[WARNING] %v", e)
+		}
+
+		if e := virConn.DomainUndefine(domain); e != nil {
+			log.Printf("[WARNING] %v", e)
+		}
+
 		return fmt.Errorf("Error creating libvirt domain: %s", err)
 	}
 	id := uuidString(domain.UUID)

@@ -139,6 +139,14 @@ func resourceLibvirtPoolCreate(d *schema.ResourceData, meta interface{}) error {
 
 	err = virConn.StoragePoolCreate(pool, 0)
 	if err != nil {
+		if e := virConn.StoragePoolDestroy(pool); e != nil {
+			log.Printf("[WARNING] %v", err)
+		}
+
+		if e := virConn.StoragePoolUndefine(pool); e != nil {
+			log.Printf("[WARNING] %v", err)
+		}
+
 		return fmt.Errorf("Error starting libvirt storage pool: %s", err)
 	}
 
